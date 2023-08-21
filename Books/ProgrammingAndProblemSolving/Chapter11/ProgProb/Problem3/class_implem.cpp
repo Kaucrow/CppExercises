@@ -1,7 +1,6 @@
 #include <iostream>
 #include "class_spec.h"
 using std::cout;
-typedef string str;
 
 Weight::Weight(){ planet = EARTH; Set(0); }
 

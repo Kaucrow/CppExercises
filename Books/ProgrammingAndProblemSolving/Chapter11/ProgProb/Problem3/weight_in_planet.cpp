@@ -1,7 +1,6 @@
 #include <iostream>
 #include "class_spec.h"
-using std::cout, std::cin, std::cerr;
-typedef string str;
+using std::cout, std::cin;
 
 int main(){
     string tempName;
