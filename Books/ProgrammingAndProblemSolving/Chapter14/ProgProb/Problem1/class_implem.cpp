@@ -1,6 +1,6 @@
 #include <iostream>
 #include "class_spec.h"
-#include "random_gen.h"
+#include "..\..\..\..\..\Tools\RandomGenerator\random_gen.h"
 using std::cout, std::cin;
 
 Roulette::Roulette(){}
