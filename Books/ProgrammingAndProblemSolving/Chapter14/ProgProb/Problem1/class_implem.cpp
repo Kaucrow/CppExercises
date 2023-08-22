@@ -18,7 +18,7 @@ void Roulette::Reset(){
 
 void Roulette::Bet(int player, int amount, BetType type){
     if(players[player - 1].hasBetted){
-        cout << "The player " << player << "has already betted.\n"; return;
+        cout << "ERROR: The player " << player << " has already betted.\n"; return;
     }
     
     int markingNumber, tempValue;
@@ -54,7 +54,7 @@ void Roulette::Bet(int player, int amount, BetType type){
             break;
         }
     }
-    players[player].hasBetted = 1;
+    players[player - 1].hasBetted = 1;
 }
 
 // private method
