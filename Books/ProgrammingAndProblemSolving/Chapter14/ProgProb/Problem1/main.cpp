@@ -3,6 +3,9 @@
 using std::cout;
 
 int main(){
-    Roulette myRoulette;
-    myRoulette.Spin(); 
+    Roulette coolRoulette;
+    coolRoulette.Reset();
+    coolRoulette.Bet(1, 36, ROW);
+    coolRoulette.Spin();
+    coolRoulette.HandleBet(1);
 }

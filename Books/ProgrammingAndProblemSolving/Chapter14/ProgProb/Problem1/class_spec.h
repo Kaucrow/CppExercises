@@ -8,21 +8,11 @@ enum BetType    {RED, BLACK, EVEN, ODD, ONE18,
 const int PLAYER_AMOUNT = 4;
 
 struct PlayerBet{
-    BetType type;
-    int betAmount, number, row, column;
+    bool hasBetted;
+    BetType betType;
+    bool betList[37] = {};
+    int betAmount;
 };
-
-class Ball{
-    public:
-        Ball();
-        void Reset();
-    private:
-        int number;
-        int row;
-        int column;
-        string oddEven; 
-};
-
 class Roulette{
     public:
         Roulette();
@@ -31,6 +21,7 @@ class Roulette{
         void Spin();
         void HandleBet(int player);
     private:
+        int GetBet(int min, int max) const;
         PlayerBet players[PLAYER_AMOUNT];
-        Ball ball;
+        int currNum = 0;
 };
