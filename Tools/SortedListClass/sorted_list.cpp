@@ -46,24 +46,31 @@ void SortedList::DeleteAllOf(ItemType item){
     // get the base pos (the position of any of the items we want to delete)
     BinSearch(item, found, basePos);
     if(found){
-        // right and left displacement relative to the base item's pos
-        int dispLeft = 0, dispRight = 0;
+        // right and left index limits of the collection of items that will be deleted
+        int leftIndex = basePos, rightIndex = basePos;
         // check if the item(s) on the left are equal to the base item,
-        // and if so, increase the left displacement
-        for(int i = 1; i <= basePos; i++){
-            if(data[basePos] == data[basePos - i]){ dispLeft++; }
-            else break;
+        // and if so, reduce the left index
+        if(basePos > 0){
+            while(leftIndex > 0){
+                if(data[basePos] == data[leftIndex - 1]){ leftIndex--; }
+                else break;
+            }
         }
         // check if the item(s) on the right are equal to the base item,
-        // and if so, increase the right displacement
-        for(int i = 1; i <= (length - 1); i++){
-            if(data[basePos] == data[basePos + i]){ dispRight++; }
-            else break;
+        // and if so, increase the right index
+        if(basePos < length - 1){
+            while(rightIndex < length - 1){
+                if(data[basePos] == data[rightIndex + 1]){ rightIndex++; }
+                else break;
+            }
         }
-        int leftIndex = basePos - dispLeft;
-        int rightIndex = basePos + dispRight;
+        // set the amount of items that will be deleted
         int amountToDel = (rightIndex - leftIndex) + 1;
-        for(leftIndex; leftIndex < (length - amountToDel); leftIndex++){
+        // set the amount of items to the right of the right index
+        int itemsToRight = ((length - 1) - rightIndex);
+        int displaceLim = leftIndex + itemsToRight;
+        // displace the items so that the collection to delete gets "pushed out" of the data
+        for(leftIndex; leftIndex < displaceLim; leftIndex++){
             data[leftIndex] = data[rightIndex + 1]; rightIndex++;
         }
         length -= amountToDel;
