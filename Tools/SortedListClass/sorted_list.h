@@ -23,4 +23,4 @@ class SortedList{
 };
 
 // PRINTS THE LIST
-ostream& operator<<(ostream& COUT, SortedList someList);
+ostream& operator<<(ostream& COUT, SortedList& someList);
