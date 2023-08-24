@@ -19,11 +19,11 @@ class SortedList{
         bool IsPresent(int license) const;
         int GetNextLicense();
         void Reset();
-        void ProcessItems();
+        void ProcessItems(string outFile);
         int GetPos();
         ~SortedList();
     private:
-        /*const*/ int MAX_LENGTH;
+        const int MAX_LENGTH;
         int length;
         int currentPos;
         ItemType* data;

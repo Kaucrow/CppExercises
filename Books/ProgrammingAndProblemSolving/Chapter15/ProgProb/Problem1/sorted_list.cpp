@@ -1,7 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include "sorted_list.h"
 #define ORD_MEMBR licenseNum    // struct member to base the list order on
-using std::cout, std::cerr, std::getline;
+using std::cout, std::cerr, std::getline, std::ofstream;
 
 SortedList::SortedList(int newMaxLength, istream& ISTREAM) 
     :   length(0), currentPos(0), MAX_LENGTH(newMaxLength)
@@ -126,16 +127,22 @@ void SortedList::Reset(){
 
 int SortedList::GetPos(){ return currentPos; }
 
-void SortedList::ProcessItems(){
-    int repeats;
-    cout << "HELLO";
+void SortedList::ProcessItems(string outFile){
+    int repeats = 0;
     Register *tempReg1, *tempReg2;
     tempReg1 = this->GetNextItem();
     tempReg2 = this->GetNextItem();
     for(int i = 0; i < MAX_LENGTH; i++){
-        if(tempReg1->licenseNum == tempReg2->licenseNum) cout << "EQUAL\n";
+        if(tempReg1->licenseNum == tempReg2->licenseNum){ cout << "EQUAL\n"; repeats++; }
         tempReg1 = tempReg2;
         tempReg2 = this->GetNextItem();
+    }
+    if(repeats > 0){
+        ofstream duplicates;
+        char* charOutFile = &outFile[0];
+        remove(charOutFile);
+        duplicates.open(outFile);
+        duplicates << "duplicatesA.dat: " << repeats;
     }
 }
 
