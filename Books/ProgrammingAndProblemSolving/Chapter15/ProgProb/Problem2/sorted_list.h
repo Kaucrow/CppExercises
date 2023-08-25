@@ -22,8 +22,9 @@ class SortedList{
         string GetNextFull();
         void Reset();
         void ProcessItems(ofstream& outFile, char fileLetter);
-        int GetPos();
+        int GetPos();       // used for debugging purposes
         ~SortedList();
+        friend class SortedListBYSTR;
     private:
         const int MAX_LENGTH;
         int length;
@@ -37,7 +38,13 @@ class SortedList{
 // PRINTS THE LIST
 ostream& operator<<(ostream& COUT, SortedList& someList);
 
+// This sorted list has function Insert() redefined so it can sort
+// based on the alphabetical order of a the last name of each person
+// in the "licenses.dat" files. DO NOT ATTEMPT TO USE FUNCTIONS Delete(),
+// DeleteAllOf(), IsPresent(), AND BinSearch() AS THEY ARE LIKELY NOT
+// TO WORK DUE TO THE CHANGE IN SORTING METHOD
 class SortedListBYSTR : public SortedList{
     public:
         SortedListBYSTR(int nexMaxLength);
+        void Insert(ItemType item);
 };

@@ -3,7 +3,7 @@
 using   std::cout, std::cerr, std::string, std::ifstream,
         std::getline;
 
-const int FILE_NUM = 3;    // FILE_NUM MUST BE 1 <= FILE_NUM <= 26
+const int FILE_NUM = 4;    // FILE_NUM MUST BE 1 <= FILE_NUM <= 26
 
 int main(){
     string inFile;
@@ -30,5 +30,5 @@ int main(){
         registry.ProcessItems(duplicates, letter);
         licenses.close();
     }
-    duplicates.open(outFile);
+    duplicates.close();
 }

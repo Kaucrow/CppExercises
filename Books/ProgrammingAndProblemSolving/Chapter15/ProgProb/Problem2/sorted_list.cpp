@@ -2,7 +2,9 @@
 #include <sstream>
 #include <iomanip>
 #include "sorted_list.h"
-#define ORD_MEMBR licenseNum    // struct member to base the list order on
+#define ORD_MEMBR licenseNum                        // struct member to define the base for the SortedList class' order
+#define ITEM_NAMEADDR item.nameAndAddress           // abbreviation used on function Insert() of class SortedListBYSTR
+#define DATA_NAMEADDR data[index].nameAndAddress    // abbreviation used on function Insert() of class SortedListBYSTR
 using std::cout, std::cerr, std::getline;
 
 SortedList::SortedList(int newMaxLength, istream* ISTREAM)
@@ -10,6 +12,8 @@ SortedList::SortedList(int newMaxLength, istream* ISTREAM)
 {
     data = new Register[newMaxLength];
     // POPULATE THE LIST WITH ISTREAM (LICENSE FILE) CONTENTS
+    // This does not execute if ISTREAM is nullptr (if the object is
+    // of class SortedListBYSTR)
     if(ISTREAM != nullptr){
         int tempPos;
         Register* tempReg;
@@ -126,7 +130,8 @@ int SortedList::GetNextLicense(){
 
 string SortedList::GetNextFull(){
     std::stringstream tempSS;
-    tempSS  << std::setfill('0') << data[currentPos].nameAndAddress << " | " << std::setw(8) << data[currentPos].licenseNum;
+    tempSS  << std::setfill('0') 
+            << data[currentPos].nameAndAddress << " | " << std::setw(8) << data[currentPos].licenseNum;
     if(currentPos == length - 1) currentPos = 0;
     else currentPos++;
     return tempSS.str();
@@ -139,7 +144,7 @@ void SortedList::Reset(){
 int SortedList::GetPos(){ return currentPos; }
 
 void SortedList::ProcessItems(ofstream& outFile, char fileLetter){
-    SortedList* tempList = new SortedList(MAX_LENGTH, nullptr);
+    SortedListBYSTR* tempList = new SortedListBYSTR(MAX_LENGTH);
     //cout << *tempList;
     int repeats = 0;
     Register* tempRegCopy = new Register;
@@ -211,10 +216,33 @@ ItemType* SortedList::GetNextItem(){
     return reg;
 }
 
+// needed to populate the list
 int SortedList::Find2ndChar(char ch, string str) const{
     int pos1, pos2;
     pos1 = str.find('|');
     str = str.substr(pos1 + 1, string::npos);
     pos2 = str.find('|');
     return pos1 + pos2;
+}
+
+// ============================================
+//  *** Class SortedListBYSTR ***
+// ============================================
+SortedListBYSTR::SortedListBYSTR(int newMaxLength)
+    : SortedList(newMaxLength, nullptr){}
+
+void SortedListBYSTR::Insert(ItemType item){
+    if(length == MAX_LENGTH){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
+    int index;
+
+    index = length - 1;
+    // This checks if the last name on the item's string is alphabetically lower than
+    // the last name of the string in the data's current item
+    while (index >= 0 && ITEM_NAMEADDR.substr(ITEM_NAMEADDR.find(' '), string::npos) < 
+            DATA_NAMEADDR.substr(DATA_NAMEADDR.find(' '), string::npos)){
+        data[index + 1] = data[index];
+        index--;
+    }
+    data[index + 1] = item;
+    length++;
 }
