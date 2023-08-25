@@ -151,7 +151,7 @@ void SortedList::ProcessItems(ofstream& outFile, char fileLetter){
     Register *tempReg1, *tempReg2;
     tempReg1 = this->GetNextItem();
     tempReg2 = this->GetNextItem();
-    for(int i = 0; i < MAX_LENGTH; i++){
+    for(int i = 0; i < MAX_LENGTH-1; i++){
         if(tempReg1->licenseNum == tempReg2->licenseNum){
             cout << "EQUAL\n"; 
             repeats++;
