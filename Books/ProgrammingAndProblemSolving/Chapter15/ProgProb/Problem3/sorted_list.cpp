@@ -1,7 +1,8 @@
 #include <iostream>
 #include "sorted_list.h"
 #define ORD_MEMBR fSurname
-using std::cout, std::cerr, std::cin, std::getline;
+using   std::cout, std::cerr, std::cin, std::getline,
+        std::ofstream;
 
 SortedList::SortedList() : length(0), currentPos(0){
     char exitFlag;
@@ -38,6 +39,24 @@ bool SortedList::IsEmpty() const{ return(length == 0); }
 bool SortedList::IsFull() const{ return(length == MAX_LENGTH); }
 
 int SortedList::Length() const{ return length; }
+
+void SortedList::WriteOut(ofstream& outFile) const{
+    outFile << "Number of contacts: " << length << '\n';
+    for(int i = 0; i < length; i++){
+        outFile << "\n-> CONTACT #" << i + 1 << '\n';
+        if(ptrs[i]->mSurname.empty()){}     else outFile << "Maternal surname: "    << ptrs[i]->mSurname << '\n';
+        if(ptrs[i]->fSurname.empty()){}     else outFile << "Paternal surname: "    << ptrs[i]->fSurname << '\n';
+        if(ptrs[i]->name.empty()){}         else outFile << "Name: "                << ptrs[i]->name << '\n';
+        if(ptrs[i]->title.empty()){}        else outFile << "Title: "               << ptrs[i]->title << '\n';
+        if(ptrs[i]->company.empty()){}      else outFile << "Company name: "        << ptrs[i]->company << '\n';
+        if(ptrs[i]->address.empty()){}      else outFile << "Address: "             << ptrs[i]->address << '\n';
+        if(ptrs[i]->city.empty()){}         else outFile << "City: "                << ptrs[i]->city << '\n';
+        if(ptrs[i]->state.empty()){}        else outFile << "State: "               << ptrs[i]->state << '\n';
+        if(ptrs[i]->postalCode.empty()){}   else outFile << "Postal code: "         << ptrs[i]->postalCode << '\n';
+        if(ptrs[i]->faxNum.empty()){}       else outFile << "Fax number: "          << ptrs[i]->faxNum << '\n';
+        if(ptrs[i]->email.empty()){}        else outFile << "Email address: "       << ptrs[i]->email << '\n';
+    }
+}
 
 // assumes that the length is increased on list construction
 void SortedList::InsertPtr(ItemType* ptr){
@@ -143,6 +162,7 @@ ostream& operator<<(ostream& COUT, SortedList& someList){
         cout << "State: "               << tempItem->state << '\n';
         cout << "Postal code: "         << tempItem->postalCode << '\n';
         cout << "Fax number: "          << tempItem->faxNum << '\n';
+        cout << "Email address: "       << tempItem->email << '\n';
     }
     cout << '\n';
     delete tempItem; tempItem = nullptr;
