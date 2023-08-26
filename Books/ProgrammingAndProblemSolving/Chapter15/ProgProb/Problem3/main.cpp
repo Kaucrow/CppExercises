@@ -1,7 +1,6 @@
 #include <iostream>
 #include "sorted_list.h"
-using   std::cout, std::cin, std::string, std::ofstream,
-        std::cerr;
+using std::cerr, std::ofstream;
 
 int main(){
     char outFileName[] = "contacts.dat";
@@ -14,7 +13,8 @@ int main(){
     // will be at the top of the outFile and the ones that do have a paternal surname will get sorted and
     // written after them
     SortedList contactList;
-    contactList.WriteOut(contactFile);
-
+    std::cout << contactList;
+    contactFile << contactList;
+    
     contactFile.close();
 }

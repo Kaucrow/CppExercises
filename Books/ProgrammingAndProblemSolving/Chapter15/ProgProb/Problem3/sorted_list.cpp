@@ -40,24 +40,6 @@ bool SortedList::IsFull() const{ return(length == MAX_LENGTH); }
 
 int SortedList::Length() const{ return length; }
 
-void SortedList::WriteOut(ofstream& outFile) const{
-    outFile << "Number of contacts: " << length << '\n';
-    for(int i = 0; i < length; i++){
-        outFile << "\n-> CONTACT #" << i + 1 << '\n';
-        if(ptrs[i]->mSurname.empty()){}     else outFile << "Maternal surname: "    << ptrs[i]->mSurname << '\n';
-        if(ptrs[i]->fSurname.empty()){}     else outFile << "Paternal surname: "    << ptrs[i]->fSurname << '\n';
-        if(ptrs[i]->name.empty()){}         else outFile << "Name: "                << ptrs[i]->name << '\n';
-        if(ptrs[i]->title.empty()){}        else outFile << "Title: "               << ptrs[i]->title << '\n';
-        if(ptrs[i]->company.empty()){}      else outFile << "Company name: "        << ptrs[i]->company << '\n';
-        if(ptrs[i]->address.empty()){}      else outFile << "Address: "             << ptrs[i]->address << '\n';
-        if(ptrs[i]->city.empty()){}         else outFile << "City: "                << ptrs[i]->city << '\n';
-        if(ptrs[i]->state.empty()){}        else outFile << "State: "               << ptrs[i]->state << '\n';
-        if(ptrs[i]->postalCode.empty()){}   else outFile << "Postal code: "         << ptrs[i]->postalCode << '\n';
-        if(ptrs[i]->faxNum.empty()){}       else outFile << "Fax number: "          << ptrs[i]->faxNum << '\n';
-        if(ptrs[i]->email.empty()){}        else outFile << "Email address: "       << ptrs[i]->email << '\n';
-    }
-}
-
 // assumes that the length is increased on list construction
 void SortedList::InsertPtr(ItemType* ptr){
     if(length == MAX_LENGTH){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
@@ -147,26 +129,26 @@ void SortedList::Reset(){
 // =====================
 //   - OP OVERLOADS - 
 // =====================
-ostream& operator<<(ostream& COUT, SortedList& someList){
-    ItemType* tempItem = new ItemType;
+ostream& operator<<(ostream& out, SortedList& someList){
+    ItemType* tempItem;// = new ItemType;
+    out << "*** Number of contacts: " << someList.Length() << '\n';
     for(int i = 0; i < someList.Length(); i++){
         tempItem = someList.GetNextItem();
-        cout << "--> CONTACT #" << i + 1 << '\n';
-        cout << "Maternal surname: "    << tempItem->mSurname << '\n';
-        cout << "Paternal surname: "    << tempItem->fSurname << '\n';
-        cout << "Name: "                << tempItem->name << '\n';
-        cout << "Title: "               << tempItem->title << '\n';
-        cout << "Company name: "        << tempItem->company << '\n';
-        cout << "Address: "             << tempItem->address << '\n';
-        cout << "City: "                << tempItem->city << '\n';
-        cout << "State: "               << tempItem->state << '\n';
-        cout << "Postal code: "         << tempItem->postalCode << '\n';
-        cout << "Fax number: "          << tempItem->faxNum << '\n';
-        cout << "Email address: "       << tempItem->email << '\n';
+        out << "\n--> CONTACT #" << i + 1 << '\n';
+        if(tempItem->mSurname.empty()){}     else out << "Maternal surname: "    << tempItem->mSurname  << '\n';
+        if(tempItem->fSurname.empty()){}     else out << "Paternal surname: "    << tempItem->fSurname  << '\n';
+        if(tempItem->name.empty()){}         else out << "Name: "                << tempItem->name      << '\n';
+        if(tempItem->title.empty()){}        else out << "Title: "               << tempItem->title     << '\n';
+        if(tempItem->company.empty()){}      else out << "Company name: "        << tempItem->company   << '\n';
+        if(tempItem->address.empty()){}      else out << "Address: "             << tempItem->address   << '\n';
+        if(tempItem->city.empty()){}         else out << "City: "                << tempItem->city      << '\n';
+        if(tempItem->state.empty()){}        else out << "State: "               << tempItem->state     << '\n';
+        if(tempItem->postalCode.empty()){}   else out << "Postal code: "         << tempItem->postalCode<< '\n';
+        if(tempItem->faxNum.empty()){}       else out << "Fax number: "          << tempItem->faxNum    << '\n';
+        if(tempItem->email.empty()){}        else out << "Email address: "       << tempItem->email     << '\n';
     }
-    cout << '\n';
-    delete tempItem; tempItem = nullptr;
-    return COUT;
+    //delete tempItem; tempItem = nullptr;
+    return out;
 }
 
 // =====================

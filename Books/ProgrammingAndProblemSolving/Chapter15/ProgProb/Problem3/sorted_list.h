@@ -23,7 +23,6 @@ class SortedList{
         bool IsEmpty() const;
         bool IsFull() const;
         int Length() const;
-        void WriteOut(ofstream& outFile) const;
         void InsertPtr(ItemType* ptr);
         void Delete(ItemType item);
         void DeleteAllOf(ItemType item);
@@ -36,7 +35,6 @@ class SortedList{
         int currentPos;
         ItemType* ptrs[MAX_LENGTH];
         ItemType* contacts = new ItemType[MAX_LENGTH];
-        string GetDataLine(DataFields currData, int pos);
         void BinSearch(ItemType, bool&, int&) const;
 };
 
