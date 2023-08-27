@@ -40,15 +40,13 @@ GenSortedList::GenSortedList(int newMaxLength, bool populate) : length(0), MAX_L
 
 GenSortedList::~GenSortedList(){ delete[] ptrs; delete[] contacts; }
 
-bool GenSortedList::IsEmpty() const{ return(length == 0); }
-
 bool GenSortedList::IsFull() const{ return(length == MAX_LENGTH); }
 
 int GenSortedList::Length() const{ return length; }
 
 // assumes that the length is increased on list construction
 void GenSortedList::InsertPtr(ItemType* ptr){
-    if(length == MAX_LENGTH){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
+    if(this->IsFull()){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
     int index;
 
     index = length - 1;
@@ -57,67 +55,6 @@ void GenSortedList::InsertPtr(ItemType* ptr){
         index--;
     }
     ptrs[index + 1] = ptr;
-}
-
-void GenSortedList::Delete(ItemType item){
-    if(this->IsEmpty()){ cerr << "ERR: THERE ARE NO ELEMENTS IN LIST\n"; return; }
-    bool found;
-    int position;
-    int index;
-
-    BinSearch(item, found, position);
-    if(found){
-        for(index = position; index < length - 1; index++){
-            ptrs[index] = ptrs[index + 1];
-        }
-        length--;
-    }
-}
-
-void GenSortedList::DeleteAllOf(ItemType item){
-    if(this->IsEmpty()){ cerr << "ERR: THERE ARE NO ELEMENTS IN LIST\n"; return; }
-    bool found;
-    int basePos;
-
-    // get the base pos (the position of any of the items we want to delete)
-    BinSearch(item, found, basePos);
-    if(found){
-        // right and left index limits of the collection of items that will be deleted
-        int leftIndex = basePos, rightIndex = basePos;
-        // check if the item(s) on the left are equal to the base item,
-        // and if so, reduce the left index
-        if(basePos > 0){
-            while(leftIndex > 0){
-                if(ptrs[basePos] == ptrs[leftIndex - 1]){ leftIndex--; }
-                else break;
-            }
-        }
-        // check if the item(s) on the right are equal to the base item,
-        // and if so, increase the right index
-        if(basePos < length - 1){
-            while(rightIndex < length - 1){
-                if(ptrs[basePos] == ptrs[rightIndex + 1]){ rightIndex++; }
-                else break;
-            }
-        }
-        // set the amount of items that will be deleted
-        int amountToDel = (rightIndex - leftIndex) + 1;
-        // set the amount of items to the right of the right index
-        int itemsToRight = ((length - 1) - rightIndex);
-        int displaceLim = leftIndex + itemsToRight;
-        // displace the items so that the collection to delete gets "pushed out" of the data
-        for(leftIndex; leftIndex < displaceLim; leftIndex++){
-            ptrs[leftIndex] = ptrs[rightIndex + 1]; rightIndex++;
-        }
-        length -= amountToDel;
-    }
-}
-
-bool GenSortedList::IsPresent(ItemType item) const{
-    bool found;
-    int position;           // required arg for BinSearch (unused)
-    BinSearch(item, found, position);
-    return found;
 }
 
 ItemType* GenSortedList::GetNextItem(){
@@ -157,29 +94,6 @@ ostream& operator<<(ostream& out, GenSortedList& someList){
     return out;
 }
 
-// =====================
-//  - PRIVATE METHODS -
-// =====================
-void GenSortedList::BinSearch(ItemType item, bool& found, int& position) const{
-    if(length > INT_MAX / 2){ cerr << "ERR: CANNOT SAFELY PERFORM BIN SEARCH\n"; return; }
-    int first = 0;
-    int last = length - 1;
-    int middle;
-
-    found = false;
-    while (last >= first && !found){
-        middle = (first + last) / 2;
-        if(item.ORD_MEMBR < ptrs[middle]->ORD_MEMBR){
-            last = middle - 1;
-        }
-        else if(item.ORD_MEMBR > ptrs[middle]->ORD_MEMBR){
-            first = middle + 1;
-        }
-        else found = true;
-    }
-    if(found) position = middle;
-}
-
 // ==========================================
 //      *** OutSortedList CLASS ***
 // ==========================================
@@ -205,46 +119,41 @@ void OutSortedList::GetFileContacts(string contactInName, int contactsNumArr[], 
     contactIn.open(contactInName);
     if(!contactIn) { cerr << "ERR: FILE \"" << contactInName << "\" COULD NOT BE OPENED\n"; return; }
 
-    bool earlyExit;
+    bool earlyExit;                         // 1 if at least one of the contact's fields were missing, 
+                                            // 0 if all 12 fields were processed
     string currLine, tempStr;
     char initialChar;
     ItemType* contactPtr;
     getline(contactIn, currLine); getline(contactIn, currLine);     // ignore first 2 lines of contactIn
+
     for(int i = 0; i < contactsNumArr[currFile]; i++){
         earlyExit = 0;
-        getline(contactIn, currLine);
+        getline(contactIn, currLine);       // ignore "--> CONTACT #N" line
         for(int j = 0; j < 12; j++){
             getline(contactIn, currLine);
-            if(currLine.empty()){ earlyExit = 1; break; }
+            if(currLine.empty()){ earlyExit = 1; break; }           // if an empty line is reached before the for loop
+                                                                    // finished, set the emptyExit flag and exit the loop
             tempStr = currLine.substr(0, 1);
-            initialChar = tempStr[0];
-            this->StoreNextField(initialChar, currLine); 
+            initialChar = tempStr[0];                               // store the first char of the current line
+            this->StoreNextField(initialChar, currLine);
         }
-        if(!earlyExit) getline(contactIn, currLine);
+        if(!earlyExit) getline(contactIn, currLine);                // if there was no early exit, consume the empty line
         contactPtr = &contacts[currentPos];
         this->InsertPtr(contactPtr);
-        length++;
-        currentPos++;       // after a contact has been stored, increase the currentPos
+        length++;                           // after a contact has been stored, increase the length
+        currentPos++;                       // and the currentPos 
     }
     contactIn.close();
-}
-
-void OutSortedList::Test(){
-    cout << contacts[1].mSurname << '\n';
-    cout << contacts[1].pSurname << '\n';
-    cout << contacts[1].name << '\n';
-    cout << contacts[1].phoneNum << '\n';
-    cout << contacts[1].address << '\n';
-    cout << contacts[1].email << '\n';
 }
 
 // =====================
 //  - PRIVATE METHODS -
 // =====================
+// stores the next contact field
 void OutSortedList::StoreNextField(char initialChar, string currLine){
     string data = currLine.substr(currLine.find(':') + 2);
     switch(initialChar){
-        case 'M': contacts[currentPos].mSurname = data; cout << "EXECUTED\n"; break;
+        case 'M': contacts[currentPos].mSurname = data; break;
         case 'N': contacts[currentPos].name     = data; break;
         case 'T': contacts[currentPos].title    = data; break;
         case 'A': contacts[currentPos].address  = data; break;
@@ -252,8 +161,8 @@ void OutSortedList::StoreNextField(char initialChar, string currLine){
         case 'F': contacts[currentPos].faxNum   = data; break;
         case 'E': contacts[currentPos].email    = data; break;
         case 'P':{
-            if(currLine.substr(0,2) == "Pa")    contacts[currentPos].pSurname = data;
-            else if(currLine.substr(0,2) == "Ph") contacts[currentPos].phoneNum = data;
+            if(currLine.substr(0,2) == "Pa")        contacts[currentPos].pSurname = data;
+            else if(currLine.substr(0,2) == "Ph")   contacts[currentPos].phoneNum = data;
             else                                    contacts[currentPos].postalCode = data;
             break;
         }
