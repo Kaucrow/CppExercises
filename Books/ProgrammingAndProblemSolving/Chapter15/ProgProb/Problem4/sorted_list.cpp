@@ -103,7 +103,6 @@ OutSortedList::OutSortedList(int newMaxLength)
 // assumes that the length is increased on list construction
 void OutSortedList::InsertPtr(ItemType* ptr){
     if(length == MAX_LENGTH){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
-    else { cout << "INSERTED\n"; }
     int index;
 
     index = length - 1;
