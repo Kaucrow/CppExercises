@@ -206,8 +206,8 @@ void OutSortedList::GetFileContacts(string contactInName, int contactsNumArr[], 
     if(!contactIn) { cerr << "ERR: FILE \"" << contactInName << "\" COULD NOT BE OPENED\n"; return; }
 
     bool earlyExit;
-    string currLine; 
-    DataFields currField;
+    string currLine, tempStr;
+    char initialChar;
     ItemType* contactPtr;
     getline(contactIn, currLine); getline(contactIn, currLine);     // ignore first 2 lines of contactIn
     for(int i = 0; i < contactsNumArr[currFile]; i++){
@@ -216,8 +216,9 @@ void OutSortedList::GetFileContacts(string contactInName, int contactsNumArr[], 
         for(int j = 0; j < 12; j++){
             getline(contactIn, currLine);
             if(currLine.empty()){ earlyExit = 1; break; }
-            currField = DataFields(j);
-            this->StoreNextField(currField, currLine); 
+            tempStr = currLine.substr(0, 1);
+            initialChar = tempStr[0];
+            this->StoreNextField(initialChar, currLine); 
         }
         if(!earlyExit) getline(contactIn, currLine);
         contactPtr = &contacts[currentPos];
@@ -240,21 +241,27 @@ void OutSortedList::Test(){
 // =====================
 //  - PRIVATE METHODS -
 // =====================
-void OutSortedList::StoreNextField(DataFields currField, string currLine){
+void OutSortedList::StoreNextField(char initialChar, string currLine){
     string data = currLine.substr(currLine.find(':') + 2);
-    switch(currField){
-        case MSURNAME:      if(currLine.substr(0,1) == "M"){     contacts[currentPos].mSurname   = data; cout << "EXECUTED\n"; } break;
-        case PSURNAME:      if(currLine.substr(0,2) == "Pa")    contacts[currentPos].pSurname   = data; break;
-        case NAME:          if(currLine.substr(0,1) == "N")     contacts[currentPos].name       = data; break;
-        case PHONENUM:      if(currLine.substr(0,2) == "Ph")    contacts[currentPos].phoneNum   = data; break;
-        case TITLE:         if(currLine.substr(0,1) == "T")     contacts[currentPos].title      = data; break;
-        case COMPANY:       if(currLine.substr(0,2) == "Co")    contacts[currentPos].company    = data; break;
-        case ADDRESS:       if(currLine.substr(0,1) == "A")     contacts[currentPos].address    = data; break;
-        case CITY:          if(currLine.substr(0,2) == "Ci")    contacts[currentPos].city       = data; break;
-        case STATE:         if(currLine.substr(0,1) == "S")     contacts[currentPos].state      = data; break;
-        case POSTALCODE:    if(currLine.substr(0,2) == "Po")    contacts[currentPos].postalCode = data; break;
-        case FAXNUM:        if(currLine.substr(0,1) == "F")     contacts[currentPos].faxNum     = data; break;
-        case EMAIL:         if(currLine.substr(0,1) == "E")     contacts[currentPos].email      = data; break;
+    switch(initialChar){
+        case 'M': contacts[currentPos].mSurname = data; cout << "EXECUTED\n"; break;
+        case 'N': contacts[currentPos].name     = data; break;
+        case 'T': contacts[currentPos].title    = data; break;
+        case 'A': contacts[currentPos].address  = data; break;
+        case 'S': contacts[currentPos].state    = data; break;
+        case 'F': contacts[currentPos].faxNum   = data; break;
+        case 'E': contacts[currentPos].email    = data; break;
+        case 'P':{
+            if(currLine.substr(0,2) == "Pa")    contacts[currentPos].pSurname = data;
+            else if(currLine.substr(0,2) == "Ph") contacts[currentPos].phoneNum = data;
+            else                                    contacts[currentPos].postalCode = data;
+            break;
+        }
+        case 'C':{
+            if(currLine.substr(0,2) == "Co")    contacts[currentPos].company = data;
+            else                                contacts[currentPos].city = data;
+            break;
+        }
         default: cerr << "ERR: ERROR ON STORE NEXT FIELD!!!\n"; break;
     }
 }

@@ -47,6 +47,6 @@ class OutSortedList : public GenSortedList{
         void GetFileContacts(string contactInName, int contactsNumArr[], int currFile);
         void Test();
     private:
-        void StoreNextField(DataFields currField, string currLine);
+        void StoreNextField(char initialChar, string currLine);
         void InsertPtr(ItemType* ptr);
 };
