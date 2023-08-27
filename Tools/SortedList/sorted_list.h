@@ -1,8 +1,10 @@
 #pragma once
 #include <iostream>
 using std::ostream; 
+
 typedef int ItemType;
 const int MAX_LENGTH = 100;
+
 class SortedList{
     public:
         SortedList();
