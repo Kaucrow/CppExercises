@@ -100,19 +100,6 @@ ostream& operator<<(ostream& out, GenSortedList& someList){
 OutSortedList::OutSortedList(int newMaxLength) 
     : GenSortedList(newMaxLength, 0){}
 
-// assumes that the length is increased on list construction
-void OutSortedList::InsertPtr(ItemType* ptr){
-    if(length == MAX_LENGTH){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
-    int index;
-
-    index = length - 1;
-    while (index >= 0 && ptr->mSurname < ptrs[index]->mSurname){
-        ptrs[index + 1] = ptrs[index];
-        index--;
-    }
-    ptrs[index + 1] = ptr;
-}
-
 void OutSortedList::GetFileContacts(string contactInName, int contactsNumArr[], int currFile){
     ifstream contactIn;
     contactIn.open(contactInName);
@@ -172,4 +159,17 @@ void OutSortedList::StoreNextField(char initialChar, string currLine){
         }
         default: cerr << "ERR: ERROR ON STORE NEXT FIELD!!!\n"; break;
     }
+}
+
+// assumes that the length is increased in caller method
+void OutSortedList::InsertPtr(ItemType* ptr){
+    if(this->IsFull()){ cerr << "ERR: LIST OUT OF SPACE\n"; return; }
+    int index;
+
+    index = length - 1;
+    while (index >= 0 && ptr->mSurname < ptrs[index]->mSurname){
+        ptrs[index + 1] = ptrs[index];
+        index--;
+    }
+    ptrs[index + 1] = ptr;
 }
