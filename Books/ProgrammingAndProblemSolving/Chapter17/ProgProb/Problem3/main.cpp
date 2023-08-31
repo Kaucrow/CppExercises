@@ -1,23 +1,18 @@
 #include <iostream>
 #include <fstream>
+#include <tuple>
 #include "conversions.h"
-using std::cout, std::cerr, std::string, std::getline, std::ifstream;
+using   std::cout, std::cerr, std::string, std::getline, 
+        std::tuple, std::get, std::ifstream;
 
-struct Artwork{
-    int number;
-    string artist, title;
-    Medium medium;
-    struct{
-        float height, width;
-    }Size;
-    Exhibit exhibit;
-    float price;
-};
+enum Field {NUMBER, ARTIST, TITLE, MEDIUM, HEIGHT, WIDTH, EXHIBIT, PRICE};
+
+typedef tuple<int, string, string, Medium, float, float, Exhibit, float> Artwork;
 
 string GetCurrData(ifstream& inFile, int spaces);
 
 template<typename T>
-void Equal (T search, T comparison, Artwork& i);
+void Equal(T search, Field dataField, Artwork artList[], int numPieces);
 
 int main(){
     string inFileName = "artworks.dat";
@@ -27,20 +22,21 @@ int main(){
     int numPieces = stoi(GetCurrData(inFile, 3));
     Artwork artList[numPieces];
 
+    // GET THE FILE'S ARTWORKS AND PUT THEIR DATA IN THE artList
     string currStr;
     for(int currArt = 0; currArt < numPieces; currArt++){
         // ignore the first two lines of the artwork data block
         getline(inFile, currStr); getline(inFile, currStr);
 
-        artList[currArt].number      = currArt + 1;
-        artList[currArt].artist      = GetCurrData(inFile, 1);
-        artList[currArt].title       = GetCurrData(inFile, 2);
-        artList[currArt].medium      = StrToMedium(GetCurrData(inFile, 1));
-        artList[currArt].Size.height = stoi(GetCurrData(inFile, 1));
-        artList[currArt].Size.width  = stoi(GetCurrData(inFile, 2));
-        artList[currArt].exhibit     = StrToExhibit(GetCurrData(inFile, 1));
-        artList[currArt].price       = stoi(GetCurrData(inFile, 2));
-        cout << artList[currArt].title << '\n';
+        get<NUMBER> (artList[currArt])    = currArt + 1;
+        get<ARTIST> (artList[currArt])    = GetCurrData(inFile, 1);
+        get<TITLE>  (artList[currArt])    = GetCurrData(inFile, 2);
+        get<MEDIUM> (artList[currArt])    = StrToMedium(GetCurrData(inFile, 1));
+        get<HEIGHT> (artList[currArt])    = stoi(GetCurrData(inFile, 1));
+        get<WIDTH>  (artList[currArt])    = stoi(GetCurrData(inFile, 2));
+        get<EXHIBIT>(artList[currArt])    = StrToExhibit(GetCurrData(inFile, 1));
+        get<PRICE>  (artList[currArt])    = stoi(GetCurrData(inFile, 2));
+        cout << get<ARTIST>(artList[currArt]) << '\n';
     }
 
     string selectData;
@@ -53,24 +49,24 @@ int main(){
     cout << "Search: "; getline(std::cin, search);
 
     if(selectData == "ARTIST")
-        for(auto& i: artList){ (Equal(search, i.artist, i)); }
+        Equal(search, ARTIST, artList, numPieces);
     else if(selectData == "TITLE")
-        for(auto& i : artList){ (Equal(search, i.title, i)); }
+        Equal(search, TITLE, artList, numPieces);
     else if(selectData == "MEDIUM"){
         Medium searchMed = StrToMedium(search);
-        for(auto& i : artList){ (Equal(searchMed, i.medium, i)); }}
+        Equal(searchMed, MEDIUM, artList, numPieces); }
     else if(selectData == "HEIGHT"){
         float searchFlt = stof(search);
-        for(auto& i : artList){ (Equal(searchFlt, i.Size.height, i)); }}
+        Equal(searchFlt, HEIGHT, artList, numPieces); }
     else if(selectData == "WIDTH"){
         float searchFlt = stof(search);
-        for(auto& i : artList){ (Equal(searchFlt, i.Size.width, i)); }}
+        Equal(searchFlt, WIDTH, artList, numPieces); }
     else if(selectData == "EXHIBIT"){
         Exhibit searchExh = StrToExhibit(search);
-        for(auto& i : artList){ (Equal(searchExh, i.exhibit, i)); }}
+        Equal(searchExh, EXHIBIT, artList, numPieces); }
     else if(selectData == "PRICE"){
         float searchFlt = stof(search);
-        for(auto& i : artList){ (Equal(searchFlt, i.price, i)); }}
+        Equal(searchFlt, PRICE, artList, numPieces); }
     else cerr << "ERR: DATA FIELD \"" << selectData << "\" IS NOT A VALID DATA FIELD\n";
 }
 
@@ -83,6 +79,9 @@ string GetCurrData(ifstream& inFile, int spaces){
 }
 
 template<typename T>
-void Equal (T search, T comparison, Artwork& i){
-    if(search == comparison) cout << "Artwork " << i.number << '\n';
+void Equal(T search, Field dataField, Artwork artList[], int numPieces){
+    for(int i = 0; i < numPieces; i++){
+        if(search == get<dataField>(artList[i])) 
+            cout << "Artwork " << get<NUMBER>(artList[i]) << '\n';
+    }
 }
