@@ -17,7 +17,7 @@ struct Artwork{
 string GetCurrData(ifstream& inFile, int spaces);
 
 template<typename T>
-bool Equal (T search, T comparison);
+void Equal (T search, T comparison, Artwork& i);
 
 int main(){
     string inFileName = "artworks.dat";
@@ -53,32 +53,36 @@ int main(){
     cout << "Search: "; getline(std::cin, search);
 
     if(selectData == "ARTIST")
-        for(auto& i : artList){ if(Equal(search, i.artist))                 cout << "Artwork " << i.number << '\n'; }
+        for(auto& i: artList){ (Equal(search, i.artist, i)); }
     else if(selectData == "TITLE")
-        for(auto& i : artList){ if(Equal(search, i.title))                  cout << "Artwork " << i.number << '\n'; }
-    else if(selectData == "MEDIUM")
-        for(auto& i : artList){ if(Equal(StrToMedium(search), i.medium))    cout << "Artwork " << i.number << '\n'; }
-    else if(selectData == "HEIGHT")
-        for(auto& i : artList){ if(Equal(stof(search), i.Size.height))      cout << "Artwork " << i.number << '\n'; }
-    else if(selectData == "WIDTH")
-        for(auto& i : artList){ if(Equal(stof(search), i.Size.width))       cout << "Artwork " << i.number << '\n'; }
-    else if(selectData == "EXHIBIT")
-        for(auto& i : artList){ if(Equal(StrToExhibit(search), i.exhibit))  cout << "Artwork " << i.number << '\n'; }
-    else if(selectData == "PRICE")
-        for(auto& i : artList){ if(Equal(stof(search), i.price))            cout << "Artwork " << i.number << '\n'; }
+        for(auto& i : artList){ (Equal(search, i.title, i)); }
+    else if(selectData == "MEDIUM"){
+        Medium searchMed = StrToMedium(search);
+        for(auto& i : artList){ (Equal(searchMed, i.medium, i)); }}
+    else if(selectData == "HEIGHT"){
+        float searchFlt = stof(search);
+        for(auto& i : artList){ (Equal(searchFlt, i.Size.height, i)); }}
+    else if(selectData == "WIDTH"){
+        float searchFlt = stof(search);
+        for(auto& i : artList){ (Equal(searchFlt, i.Size.width, i)); }}
+    else if(selectData == "EXHIBIT"){
+        Exhibit searchExh = StrToExhibit(search);
+        for(auto& i : artList){ (Equal(searchExh, i.exhibit, i)); }}
+    else if(selectData == "PRICE"){
+        float searchFlt = stof(search);
+        for(auto& i : artList){ (Equal(searchFlt, i.price, i)); }}
     else cerr << "ERR: DATA FIELD \"" << selectData << "\" IS NOT A VALID DATA FIELD\n";
 }
 
 string GetCurrData(ifstream& inFile, int spaces){
     string tempStr;
     getline(inFile, tempStr);
-    //cout << tempStr << '\n';
     for(int i = 0; i < spaces; i++)
         tempStr = tempStr.substr(tempStr.find(' ') + 1);
     return tempStr;
 }
 
 template<typename T>
-bool Equal (T search, T comparison){
-    return (search == comparison);
+void Equal (T search, T comparison, Artwork& i){
+    if(search == comparison) cout << "Artwork " << i.number << '\n';
 }
