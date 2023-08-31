@@ -1,18 +1,25 @@
 #include <iostream>
 #include <fstream>
 #include <tuple>
+#include <functional>
+#include <variant>
+#include <map>
 #include "conversions.h"
-using   std::cout, std::cerr, std::string, std::getline, 
-        std::tuple, std::get, std::ifstream;
+using   std::cout, std::cerr, std::string, std::getline, std::ifstream, 
+        std::tuple, std::get, std::function, std::variant, std::map;
 
-enum Field {NUMBER, ARTIST, TITLE, MEDIUM, HEIGHT, WIDTH, EXHIBIT, PRICE};
+enum Field {NUMBER, ARTIST, TITLE, MEDIUM, HEIGHT, WIDTH, EXHIBIT, PRICE, ERROR};
+
+map<string, Field> StrField {{"NUMBER", NUMBER}, {"ARTIST", ARTIST}, {"TITLE", TITLE},
+                             {"MEDIUM", MEDIUM}, {"HEIGHT", HEIGHT}, {"WIDTH", WIDTH},
+                             {"EXHIBIT", EXHIBIT}, {"PRICE", PRICE}};
 
 typedef tuple<int, string, string, Medium, float, float, Exhibit, float> Artwork;
+typedef variant<int, string, Medium, float, Exhibit> SearchVar;
 
 string GetCurrData(ifstream& inFile, int spaces);
-
-template<typename T>
-void Equal(T search, Field dataField, Artwork artList[], int numPieces);
+// SEARCH FUNCTION
+void Search(SearchVar& search, Field dataField, Artwork artList[], int numPieces);
 
 int main(){
     string inFileName = "artworks.dat";
@@ -39,35 +46,33 @@ int main(){
         cout << get<ARTIST>(artList[currArt]) << '\n';
     }
 
-    string selectData;
+    // THE USER INPUTS THE DATA FIELD TO SEARCH
+    string dataFieldStr;
     cout << "Select data field (Artist/Title/Medium/Height/Width/Exhibit/Price): ";
-    std::cin >> selectData;
-    for(auto& i : selectData) i = toupper(i);
+    std::cin >> dataFieldStr;
+    for(auto& i : dataFieldStr) i = toupper(i);
 
-    string search;
+    // CONVERT THE STRING TO A "Field" ENUM TYPE VARIABLE 
+    Field dataField = ERROR;
+    for(auto& i : StrField) if(i.first == dataFieldStr) dataField = i.second;
+    if(dataField == ERROR){ cerr << "ERR: DATA FIELD \"" << dataFieldStr << "\" IS NOT A VALID DATA FIELD\n"; return 1; }
+
+    // THE USER INPUTS THE SEARCH
+    string searchInput;
     std::cin.ignore(9999, '\n');
-    cout << "Search: "; getline(std::cin, search);
+    cout << "Search: "; getline(std::cin, searchInput);
+    SearchVar search = searchInput;
 
-    if(selectData == "ARTIST")
-        Equal(search, ARTIST, artList, numPieces);
-    else if(selectData == "TITLE")
-        Equal(search, TITLE, artList, numPieces);
-    else if(selectData == "MEDIUM"){
-        Medium searchMed = StrToMedium(search);
-        Equal(searchMed, MEDIUM, artList, numPieces); }
-    else if(selectData == "HEIGHT"){
-        float searchFlt = stof(search);
-        Equal(searchFlt, HEIGHT, artList, numPieces); }
-    else if(selectData == "WIDTH"){
-        float searchFlt = stof(search);
-        Equal(searchFlt, WIDTH, artList, numPieces); }
-    else if(selectData == "EXHIBIT"){
-        Exhibit searchExh = StrToExhibit(search);
-        Equal(searchExh, EXHIBIT, artList, numPieces); }
-    else if(selectData == "PRICE"){
-        float searchFlt = stof(search);
-        Equal(searchFlt, PRICE, artList, numPieces); }
-    else cerr << "ERR: DATA FIELD \"" << selectData << "\" IS NOT A VALID DATA FIELD\n";
+    // IF NEEDED, CONVERT THE SEARCH TO Float, Medium, OR Exhibit TYPE
+    if(dataFieldStr == "HEIGHT" || dataFieldStr == "WIDTH" || dataFieldStr == "PRICE")
+        search = stof(searchInput);
+    else if(dataFieldStr == "MEDIUM")
+        search = StrToMedium(searchInput);
+    else if(dataFieldStr == "EXHIBIT")
+        search = StrToExhibit(searchInput);
+
+    // CALL THE SEARCH FUNCTION
+    Search(search, dataField, artList, numPieces);
 }
 
 string GetCurrData(ifstream& inFile, int spaces){
@@ -78,10 +83,23 @@ string GetCurrData(ifstream& inFile, int spaces){
     return tempStr;
 }
 
-template<typename T>
-void Equal(T search, Field dataField, Artwork artList[], int numPieces){
-    for(int i = 0; i < numPieces; i++){
-        if(search == get<dataField>(artList[i])) 
-            cout << "Artwork " << get<NUMBER>(artList[i]) << '\n';
+void Search(SearchVar& search, Field dataField, Artwork artList[], int numPieces){
+    using CompareFunc = function<bool(const Artwork&, const SearchVar&)>;
+    
+    CompareFunc compareFuncs[] = {
+        [](const Artwork& art, const SearchVar& val){ return get<0>(art) == get<int>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<1>(art) == get<string>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<2>(art) == get<string>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<3>(art) == get<Medium>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<4>(art) == get<float>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<5>(art) == get<float>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<6>(art) == get<Exhibit>(val); },
+        [](const Artwork& art, const SearchVar& val){ return get<7>(art) == get<float>(val); }
+    };
+
+    for (int i = 0; i < numPieces; i++){
+        if (compareFuncs[dataField](artList[i], search)) {
+            cout << "Artwork " << get<0>(artList[i]) << '\n';
+        }
     }
 }
