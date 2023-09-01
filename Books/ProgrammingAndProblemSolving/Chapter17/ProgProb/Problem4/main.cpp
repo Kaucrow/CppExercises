@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <variant>
+#include <functional>
 using   std::cout, std::cerr, std::cin, std::getline, std::string,
-        std::variant, std::get, std::ifstream;
+        std::variant, std::get, std::function, std::ifstream;
 
 struct Flamsteed{
     int number;
@@ -22,6 +23,7 @@ struct Star{
 };
 
 string GetCurrData(ifstream& inFile, int spaces);
+void WriteStar(ifstream& inFile, Star starList[], int idType);
 
 int main(){
     auto OpenFile = [](ifstream& inFile, string fileName){
@@ -48,27 +50,10 @@ int main(){
         currStars = stoi(GetCurrData(inFile, 5)); getline(inFile, tempStr);
         for(int j = 0; j < currStars; j++){
             getline(inFile, tempStr);
-            if(i == 0)
-                /*get<string>*/starList[listPos].identifier = GetCurrData(inFile, 1);
-            else if(i == 1){
-                Flamsteed* tempFlam = new Flamsteed;
-                tempStr = GetCurrData(inFile, 1);
-                tempFlam->constellation = tempStr.substr(0, tempStr.find(' '));
-                tempFlam->number = stoi(tempStr.substr(tempStr.find(' ') + 1));
-                starList[listPos].identifier = *tempFlam; delete tempFlam;
-            }
-            else{
-                EqCoords* tempCoords = new EqCoords;
-                tempStr = GetCurrData(inFile, 1); tempStr = tempStr.substr(1);
-                tempCoords->rAsc = stof(tempStr);
-                tempCoords->decl = stof(tempStr.substr(tempStr.find(' ') + 1, tempStr.find(')')));
-                starList[listPos].identifier = *tempCoords; delete tempCoords;
-            }
-            starList[listPos].brightness = stof(GetCurrData(inFile, 1));
-            starList[listPos].color = (GetCurrData(inFile, 1))[0];
-            listPos++;
+            WriteStar(inFile, starList, i);
         }
     }
+    cout << starList[1].color << '\n';
 }
 
 string GetCurrData(ifstream& inFile, int spaces){
@@ -77,4 +62,32 @@ string GetCurrData(ifstream& inFile, int spaces){
     for(int i = 0; i < spaces; i++)
         tempStr = tempStr.substr(tempStr.find(' ') + 1);
     return tempStr;
+}
+
+void WriteStar(ifstream& inFile, Star starList[], int idType){
+    static int listPos = 0;
+    using WriteID = function<void (ifstream& inFile, Star starList[], int listPos)>;
+
+    static WriteID writeID[] = {
+        [](ifstream& inFile, Star starList[], int listPos){ starList[listPos].identifier = GetCurrData(inFile, 1); },
+
+        [](ifstream& inFile, Star starList[], int listPos){
+            Flamsteed* tempFlam = new Flamsteed;
+            string tempStr = GetCurrData(inFile, 1);
+            tempFlam->constellation = tempStr.substr(0, tempStr.find(' '));
+            tempFlam->number = stoi(tempStr.substr(tempStr.find(' ') + 1));
+            starList[listPos].identifier = *tempFlam; delete tempFlam; },
+
+        [](ifstream& inFile, Star starList[], int listPos){
+            EqCoords* tempCoords = new EqCoords;
+            string tempStr = GetCurrData(inFile, 1); tempStr = tempStr.substr(1);
+            tempCoords->rAsc = stof(tempStr);
+            tempCoords->decl = stof(tempStr.substr(tempStr.find(' ') + 1, tempStr.find(')')));
+            starList[listPos].identifier = *tempCoords; delete tempCoords; }
+    };
+
+    writeID[idType](inFile, starList, listPos);
+    starList[listPos].brightness = stof(GetCurrData(inFile, 1));
+    starList[listPos].color = (GetCurrData(inFile, 1))[0];
+    listPos++;
 }
