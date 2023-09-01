@@ -2,8 +2,12 @@
 #include <fstream>
 #include <variant>
 #include <functional>
+#define SEARCH_PARAMS Star starList[], int minLim, int maxLim, string name, int number, float rAsc, float decl
+#define STR_TO_ID_PARAMS string search, string& searchName, int& searchNumber, float& searchRAsc, float& searchDecl
 using   std::cout, std::cerr, std::cin, std::getline, std::string,
         std::variant, std::get, std::function, std::ifstream;
+
+enum IDType {NAMED, FLAMSTEED, COORDS};
 
 struct Flamsteed{
     int number;
@@ -23,7 +27,9 @@ struct Star{
 };
 
 string GetCurrData(ifstream& inFile, int spaces);
-void WriteStar(ifstream& inFile, Star starList[], int idType);
+variant<float, string> GetIDData(string toConvert, int idType);
+void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos);
+void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType);
 
 int main(){
     auto OpenFile = [](ifstream& inFile, string fileName){
@@ -44,16 +50,25 @@ int main(){
     // WRITE THE STARS IN THE FILES INTO AN ARRAY OF TYPE Star
     Star starList[starNum];
     int currStars, listPos = 0;
+    int typesLim[3];
     string tempStr;
     for(int i = 0; i < 3; i++){
         OpenFile(inFile, fileNames[i]);
         currStars = stoi(GetCurrData(inFile, 5)); getline(inFile, tempStr);
         for(int j = 0; j < currStars; j++){
             getline(inFile, tempStr);
-            WriteStar(inFile, starList, i);
+            WriteStar(inFile, starList, i, listPos);
         }
+        typesLim[i] = listPos - 1;
     }
     cout << starList[1].color << '\n';
+
+    string search;
+    int searchStarType;
+    cout << "Input your search: "; getline(cin, search);
+    if(search.find_first_of('(') != string::npos){ cout << "FOUND (! " << '\n'; searchStarType = 2; }
+    else if(search.find_first_of("0123456789") != string::npos){ cout << "FOUND NUM! " << '\n'; searchStarType = 1; }
+    else{ cout << "FOUND NONE! " << '\n'; searchStarType = 0; }
 }
 
 string GetCurrData(ifstream& inFile, int spaces){
@@ -64,9 +79,8 @@ string GetCurrData(ifstream& inFile, int spaces){
     return tempStr;
 }
 
-void WriteStar(ifstream& inFile, Star starList[], int idType){
-    static int listPos = 0;
-    using WriteID = function<void (ifstream& inFile, Star starList[], int listPos)>;
+void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
+    using WriteID = function<void(ifstream& inFile, Star starList[], int listPos)>;
 
     static WriteID writeID[] = {
         [](ifstream& inFile, Star starList[], int listPos){ starList[listPos].identifier = GetCurrData(inFile, 1); },
@@ -74,15 +88,15 @@ void WriteStar(ifstream& inFile, Star starList[], int idType){
         [](ifstream& inFile, Star starList[], int listPos){
             Flamsteed* tempFlam = new Flamsteed;
             string tempStr = GetCurrData(inFile, 1);
-            tempFlam->constellation = tempStr.substr(0, tempStr.find(' '));
-            tempFlam->number = stoi(tempStr.substr(tempStr.find(' ') + 1));
+            tempFlam->constellation = get<string>(GetIDData(tempStr, FLAMSTEED));
+            tempFlam->number = get<float>(GetIDData(tempStr, FLAMSTEED));
             starList[listPos].identifier = *tempFlam; delete tempFlam; },
 
         [](ifstream& inFile, Star starList[], int listPos){
             EqCoords* tempCoords = new EqCoords;
-            string tempStr = GetCurrData(inFile, 1); tempStr = tempStr.substr(1);
-            tempCoords->rAsc = stof(tempStr);
-            tempCoords->decl = stof(tempStr.substr(tempStr.find(' ') + 1, tempStr.find(')')));
+            string tempStr = GetCurrData(inFile, 1);
+            tempCoords->rAsc = get<float>(GetIDData(tempStr, COORDS));
+            tempCoords->decl = get<float>(GetIDData(tempStr, COORDS));
             starList[listPos].identifier = *tempCoords; delete tempCoords; }
     };
 
@@ -90,4 +104,36 @@ void WriteStar(ifstream& inFile, Star starList[], int idType){
     starList[listPos].brightness = stof(GetCurrData(inFile, 1));
     starList[listPos].color = (GetCurrData(inFile, 1))[0];
     listPos++;
+}
+
+void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType){
+    string searchName; int searchNumber; float searchRAsc, searchDecl;
+    using SearchID = function<bool(SEARCH_PARAMS)>;
+    using StrToID = function<void(STR_TO_ID_PARAMS)>;
+
+    static SearchID searchID[] = {
+        //[](Star starList[])
+    };
+
+    static StrToID strToID[] = {
+        [](STR_TO_ID_PARAMS){ searchName = search; },
+        [](STR_TO_ID_PARAMS){
+            searchName = get<string>(GetIDData(search, FLAMSTEED));
+            searchNumber = get<float>(GetIDData(search, FLAMSTEED)); },
+        [](STR_TO_ID_PARAMS){
+            searchRAsc = get<float>(GetIDData(search, COORDS));
+            searchDecl = get<float>(GetIDData(search, COORDS));
+        }
+    };
+}
+
+variant<float, string> GetIDData(string toConvert, int idType){
+    static bool status = 0;
+    if(status == 0){
+        status = 1;
+        if(idType == FLAMSTEED) return toConvert.substr(0, toConvert.find(' '));
+        else return stof(toConvert.substr(1));
+    }
+    else
+        { status = 0; return stof(toConvert.substr(toConvert.find(' ') + 1)); }
 }
