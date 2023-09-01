@@ -2,6 +2,7 @@
 #include <fstream>
 #include <variant>
 #include <functional>
+#include <cmath>        // for round()
 #define STR_TO_ID_PARAMS string search, string& searchName, int& searchNumber, float& searchRAsc, float& searchDecl
 using   std::cout, std::cerr, std::cin, std::getline, std::string,
         std::variant, std::get, std::function, std::ifstream;
@@ -27,7 +28,7 @@ struct Star{
 
 string GetCurrData(ifstream& inFile, int spaces);
 void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos);
-void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType);
+void SearchStar(Star starList[], string search, int typesLim[], int idType);
 variant<float, string> IDStrToData(string toConvert, int idType);
 string IDDataToStr(Star starList[], int index, int idType);
 
@@ -59,16 +60,20 @@ int main(){
             getline(inFile, tempStr);
             WriteStar(inFile, starList, i, listPos);
         }
-        typesLim[i] = listPos - 1;
+        typesLim[i] = listPos;
     }
     cout << starList[1].color << '\n';
 
     string search;
-    int searchStarType;
+    cout << typesLim[0] << typesLim[1] << typesLim[2] << '\n';
+    cout << get<Flamsteed>(starList[2].identifier).constellation << '\n';
+    cout << get<Flamsteed>(starList[2].identifier).number << '\n';
     cout << "Input your search: "; getline(cin, search);
-    if(search.find_first_of('(') != string::npos){ cout << "FOUND (! " << '\n'; searchStarType = 2; }
-    else if(search.find_first_of("0123456789") != string::npos){ cout << "FOUND NUM! " << '\n'; searchStarType = 1; }
-    else{ cout << "FOUND NONE! " << '\n'; searchStarType = 0; }
+    if(search.find_first_of('(') != string::npos){ cout << "FOUND (! " << '\n'; SearchStar(starList, search, typesLim, COORDS); }
+    else if(search.find_first_of("0123456789") != string::npos){ cout << "FOUND NUM! " << '\n'; SearchStar(starList, search, typesLim, FLAMSTEED); }
+    else{ cout << "FOUND NONE! " << '\n'; SearchStar(starList, search, typesLim, NAMED); }
+
+
 }
 
 string GetCurrData(ifstream& inFile, int spaces){
@@ -107,7 +112,7 @@ void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
 }
 
 #define SEARCH_PARAMS Star starList[], string search, int index 
-void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType){
+void SearchStar(Star starList[], string search, int typesLim[], int idType){
     using SearchID = function<bool(SEARCH_PARAMS)>;
 
     static SearchID searchID[] = {
@@ -115,6 +120,17 @@ void SearchStar(Star starList[], int minLim, int maxLim, string search, int idTy
         [](SEARCH_PARAMS){ return (search == IDDataToStr(starList, index, FLAMSTEED)); },
         [](SEARCH_PARAMS){ return (search == IDDataToStr(starList, index, COORDS)); }
     };
+
+    int minLim, maxLim;
+    if(idType == NAMED){ minLim = 0; maxLim = typesLim[NAMED]; }
+    else if(idType == FLAMSTEED){ minLim = typesLim[NAMED]; maxLim = typesLim[FLAMSTEED]; }
+    else{ minLim = typesLim[FLAMSTEED]; maxLim = typesLim[COORDS]; }
+
+    for(int i = minLim; i < maxLim; i++){
+        if(searchID[idType](starList, search, i)){
+            cout << "FOUND" << '\n'; break;
+        }
+    }
 }
 
 variant<float, string> IDStrToData(string toConvert, int idType){
@@ -133,12 +149,17 @@ string IDDataToStr(Star starList[], int index, int idType){
     if(idType == FLAMSTEED){
         returnStr += get<Flamsteed>(starList[index].identifier).constellation; 
         returnStr.push_back(' ');
-        returnStr += get<Flamsteed>(starList[index].identifier).number;
+        returnStr += std::to_string(get<Flamsteed>(starList[index].identifier).number);
     }
     else{
-        returnStr.push_back('('); returnStr += get<EqCoords>(starList[index].identifier).rAsc;
-        returnStr.push_back(','); returnStr.push_back(' ');
-        returnStr += get<EqCoords>(starList[index].identifier).decl; returnStr.push_back(')');
+        string tempStr;
+        returnStr.push_back('('); returnStr += std::to_string(round(get<EqCoords>(starList[index].identifier).rAsc * 100.0) / 100.0);
+        cout << returnStr << '\n'; returnStr = returnStr.substr(0, returnStr.find('.') + 3); cout << returnStr << '\n';
+        returnStr += ", "; 
+        tempStr = std::to_string(round(get<EqCoords>(starList[index].identifier).decl * 100.0) / 100.0); 
+        returnStr += tempStr.substr(0, tempStr.find('.') + 3);
+        returnStr.push_back(')');
     }
+    cout << returnStr << '\n';
     return returnStr;
 }
