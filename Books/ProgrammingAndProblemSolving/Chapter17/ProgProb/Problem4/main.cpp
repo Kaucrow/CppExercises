@@ -2,7 +2,6 @@
 #include <fstream>
 #include <variant>
 #include <functional>
-#define SEARCH_PARAMS Star starList[], int minLim, int maxLim, string name, int number, float rAsc, float decl
 #define STR_TO_ID_PARAMS string search, string& searchName, int& searchNumber, float& searchRAsc, float& searchDecl
 using   std::cout, std::cerr, std::cin, std::getline, std::string,
         std::variant, std::get, std::function, std::ifstream;
@@ -27,9 +26,10 @@ struct Star{
 };
 
 string GetCurrData(ifstream& inFile, int spaces);
-variant<float, string> GetIDData(string toConvert, int idType);
 void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos);
 void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType);
+variant<float, string> IDStrToData(string toConvert, int idType);
+string IDDataToStr(Star starList[], int index, int idType);
 
 int main(){
     auto OpenFile = [](ifstream& inFile, string fileName){
@@ -88,15 +88,15 @@ void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
         [](ifstream& inFile, Star starList[], int listPos){
             Flamsteed* tempFlam = new Flamsteed;
             string tempStr = GetCurrData(inFile, 1);
-            tempFlam->constellation = get<string>(GetIDData(tempStr, FLAMSTEED));
-            tempFlam->number = get<float>(GetIDData(tempStr, FLAMSTEED));
+            tempFlam->constellation = get<string>(IDStrToData(tempStr, FLAMSTEED));
+            tempFlam->number = get<float>(IDStrToData(tempStr, FLAMSTEED));
             starList[listPos].identifier = *tempFlam; delete tempFlam; },
 
         [](ifstream& inFile, Star starList[], int listPos){
             EqCoords* tempCoords = new EqCoords;
             string tempStr = GetCurrData(inFile, 1);
-            tempCoords->rAsc = get<float>(GetIDData(tempStr, COORDS));
-            tempCoords->decl = get<float>(GetIDData(tempStr, COORDS));
+            tempCoords->rAsc = get<float>(IDStrToData(tempStr, COORDS));
+            tempCoords->decl = get<float>(IDStrToData(tempStr, COORDS));
             starList[listPos].identifier = *tempCoords; delete tempCoords; }
     };
 
@@ -106,28 +106,18 @@ void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
     listPos++;
 }
 
+#define SEARCH_PARAMS Star starList[], string search, int index 
 void SearchStar(Star starList[], int minLim, int maxLim, string search, int idType){
-    string searchName; int searchNumber; float searchRAsc, searchDecl;
     using SearchID = function<bool(SEARCH_PARAMS)>;
-    using StrToID = function<void(STR_TO_ID_PARAMS)>;
 
     static SearchID searchID[] = {
-        //[](Star starList[])
-    };
-
-    static StrToID strToID[] = {
-        [](STR_TO_ID_PARAMS){ searchName = search; },
-        [](STR_TO_ID_PARAMS){
-            searchName = get<string>(GetIDData(search, FLAMSTEED));
-            searchNumber = get<float>(GetIDData(search, FLAMSTEED)); },
-        [](STR_TO_ID_PARAMS){
-            searchRAsc = get<float>(GetIDData(search, COORDS));
-            searchDecl = get<float>(GetIDData(search, COORDS));
-        }
+        [](SEARCH_PARAMS){ return (search == get<string>(starList[index].identifier)); },
+        [](SEARCH_PARAMS){ return (search == IDDataToStr(starList, index, FLAMSTEED)); },
+        [](SEARCH_PARAMS){ return (search == IDDataToStr(starList, index, COORDS)); }
     };
 }
 
-variant<float, string> GetIDData(string toConvert, int idType){
+variant<float, string> IDStrToData(string toConvert, int idType){
     static bool status = 0;
     if(status == 0){
         status = 1;
@@ -136,4 +126,19 @@ variant<float, string> GetIDData(string toConvert, int idType){
     }
     else
         { status = 0; return stof(toConvert.substr(toConvert.find(' ') + 1)); }
+}
+
+string IDDataToStr(Star starList[], int index, int idType){
+    string returnStr;
+    if(idType == FLAMSTEED){
+        returnStr += get<Flamsteed>(starList[index].identifier).constellation; 
+        returnStr.push_back(' ');
+        returnStr += get<Flamsteed>(starList[index].identifier).number;
+    }
+    else{
+        returnStr.push_back('('); returnStr += get<EqCoords>(starList[index].identifier).rAsc;
+        returnStr.push_back(','); returnStr.push_back(' ');
+        returnStr += get<EqCoords>(starList[index].identifier).decl; returnStr.push_back(')');
+    }
+    return returnStr;
 }
