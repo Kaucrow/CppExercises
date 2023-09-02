@@ -32,44 +32,20 @@ int main(){
 
 string NumToStr(int toConvert){
     string returnStr;
+
     if(toConvert >= 20){
         int switchInt = floor(toConvert / 10.0) * 10;
-        switch(switchInt){
-            case 20: returnStr += "twenty"; break;
-            case 30: returnStr += "thirty"; break;
-            case 40: returnStr += "fourty"; break;
-            case 50: returnStr += "fifty"; break;
-        }
+        for(auto& i : NumStrMap){
+            if(i.first == switchInt) returnStr += i.second; }
         returnStr.push_back('-');
     }
 
-    if(toConvert >= 10 && toConvert <= 19){
-        switch(toConvert){
-            case 10: returnStr += "ten";        break;
-            case 11: returnStr += "eleven";     break;
-            case 12: returnStr += "twelve";     break;
-            case 13: returnStr += "thirteen";   break;
-            case 14: returnStr += "fourteen";   break;
-            case 15: returnStr += "fifteen";    break;
-            case 16: returnStr += "sixteen";    break;
-            case 17: returnStr += "seventeen";  break;
-            case 18: returnStr += "eighteen";   break;
-            case 19: returnStr += "nineteen";   break;
-        }
-    }
-    else{
-        switch(toConvert % 10){
-            case 1: returnStr += "one";         break;
-            case 2: returnStr += "two";         break;
-            case 3: returnStr += "three";       break;
-            case 4: returnStr += "four";        break;
-            case 5: returnStr += "five";        break;
-            case 6: returnStr += "six";         break;
-            case 7: returnStr += "seven";       break;
-            case 8: returnStr += "eight";       break;
-            case 9: returnStr += "nine";        break;
-        }
-    }
+    if(toConvert >= 10 && toConvert <= 19)
+        for(auto& i : NumStrMap){
+            if(i.first == toConvert) returnStr += i.second; }
+    else
+        for(auto& i : NumStrMap){
+            if(i.first == (toConvert % 10)) returnStr += i.second; }
     
     return returnStr;
 }
