@@ -1,7 +1,8 @@
 #include <iostream>
 #include <map>
 #include <cmath>
-using std::cout, std::cin, std::string, std::map;
+#include "exceptions.h"
+using std::cout, std::cerr, std::cin, std::string, std::map;
 
 map<int, string> NumStrMap = {{1, "one"},   {2, "two"},     {3, "three"},   {4, "four"},
                               {5, "five"},  {6, "six"},     {7, "seven"},   {8, "eight"},
@@ -12,11 +13,15 @@ map<int, string> NumStrMap = {{1, "one"},   {2, "two"},     {3, "three"},   {4, 
                               {40, "fourty"},   {50, "fifty"},      {60, "sixty"}};
 
 string NumToStr(int toConvert);
+void GetHoursMins(int& hours, int& mins);
 
 int main(){
     int hours, mins, realHours;
-    cout << "Input hours and minutes, separated by a space: ";
-    cin >> hours; cin >> mins;
+    while(true){
+        try{ GetHoursMins(hours, mins); break; }
+        catch(BadInput excep){ cerr << excep.what(); }
+    }
+
     string amPm;
     amPm = (hours >= 12) ? "p.m." : "a.m.";
     
@@ -28,6 +33,13 @@ int main(){
     else realHours = hours;
 
     cout << NumToStr(realHours) << ' ' << NumToStr(mins) << ' ' << amPm << '\n';
+}
+
+void GetHoursMins(int& hours, int& mins){
+    cout << "Input hours and minutes, separated by a space: ";
+    cin >> hours; cin >> mins;
+    if(hours < 0 || hours >= 24 || mins < 0 || mins >= 60 )
+        throw BadInput("ERR: INVALID INPUT\n");
 }
 
 string NumToStr(int toConvert){
