@@ -132,13 +132,9 @@ void SearchStar(Star starList[], string search, int typesLim[], int idType){
             cout    << "-------------------------------\n"
                     << "Identifier: ";
 
-            if(idType == NAMED) cout << get<string>(starList[i].identifier) << '\n';
-            else if(idType == FLAMSTEED){
-                cout    << get<Flamsteed>(starList[i].identifier).constellation << ' '
-                        << get<Flamsteed>(starList[i].identifier).number << '\n'; }
-            else{
-                cout    << '(' << get<Coords>(starList[i].identifier).rAsc << ", "
-                        << get<Coords>(starList[i].identifier).decl << ")\n"; }
+            if(idType == NAMED)             cout << get<string>(starList[i].identifier) << '\n';
+            else if(idType == FLAMSTEED)    cout << IDDataToStr(starList, i, FLAMSTEED) << '\n';
+            else                            cout << IDDataToStr(starList, i, COORDS) << '\n';
 
             cout << "Brightness: " << starList[i].brightness << '\n'; 
             cout << "Color: ";
