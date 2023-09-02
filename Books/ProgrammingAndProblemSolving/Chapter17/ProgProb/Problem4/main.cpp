@@ -29,9 +29,9 @@ struct Star{
     char color;         // [B: Blue] [W: White] [Y: Yellow] [O: Orange] [R: Red]
 };
 
-string GetCurrData(ifstream& inFile, int spaces);
-void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos);
+void WriteStar(ifstream& inFile, Star starList[], int& listPos, int idType);
 void SearchStar(Star starList[], string search, int typesLim[], int idType);
+string GetCurrData(ifstream& inFile, int spaces);
 variant<float, string> IDStrToData(string toConvert, int idType);
 string IDDataToStr(Star starList[], int index, int idType);
 
@@ -60,11 +60,13 @@ int main(){
         currStars = stoi(GetCurrData(inFile, 5)); getline(inFile, tempStr);
         for(int j = 0; j < currStars; j++){
             getline(inFile, tempStr);
-            WriteStar(inFile, starList, i, listPos);
+            WriteStar(inFile, starList, listPos, i);
         }
-        typesLim[i] = listPos;
-    }
+        typesLim[i] = listPos;      // stores the ranges in which each star type is on inside the list
+    }                               // (each element contains the amount of stars there are on the list
+                                    //  up until the end of the range of the current type)
 
+    // ASK THE USER FOR SEARCH INPUT AND CALL SearchStar() ACCORDING TO STAR ID TYPE
     string search;
     cout << "Input your search: "; getline(cin, search);
 
@@ -76,16 +78,9 @@ int main(){
         SearchStar(starList, search, typesLim, NAMED);
 }
 
-string GetCurrData(ifstream& inFile, int spaces){
-    string tempStr;
-    getline(inFile, tempStr);
-    for(int i = 0; i < spaces; i++)
-        tempStr = tempStr.substr(tempStr.find(' ') + 1);
-    return tempStr;
-}
-
-void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
-    using WriteID = function<void(ifstream& inFile, Star starList[], int listPos)>;
+// WRITE STARS FROM THE INPUT FILES INTO THE starList ARRAY
+void WriteStar(ifstream& inFile, Star starList[], int& listPos, int idType){
+    using WriteID = function<void(ifstream& inFile, Star starList[], int& listPos)>;
 
     static WriteID writeID[] = {
         [](ifstream& inFile, Star starList[], int listPos){
@@ -112,6 +107,7 @@ void WriteStar(ifstream& inFile, Star starList[], int idType, int& listPos){
     listPos++;
 }
 
+// SEARCH FOR A STAR ON THE starList, BASED ON ITS IDENTIFIER
 #define SEARCH_PARAMS Star starList[], string search, int index 
 void SearchStar(Star starList[], string search, int typesLim[], int idType){
     bool foundStar = 0;
@@ -128,7 +124,9 @@ void SearchStar(Star starList[], string search, int typesLim[], int idType){
     else if(idType == FLAMSTEED){ minLim = typesLim[NAMED]; maxLim = typesLim[FLAMSTEED]; }
     else{ minLim = typesLim[FLAMSTEED]; maxLim = typesLim[COORDS]; }
 
+    // search only in the ranges in which the star type can be at (minLim - maxLim)
     for(int i = minLim; i < maxLim; i++){
+        // do the search. If it returns true, the star was found, and print its data
         if(searchID[idType](starList, search, i)){
             cout    << "FOUND STAR:\n";
             cout    << "-------------------------------\n"
@@ -144,6 +142,7 @@ void SearchStar(Star starList[], string search, int typesLim[], int idType){
 
             cout << "Brightness: " << starList[i].brightness << '\n'; 
             cout << "Color: ";
+            // convert the color char to an actual color string using the map
             for(auto& j : ColorCharToStr){ if(j.first == starList[i].color) cout << j.second << '\n'; }
             cout << "-------------------------------\n";
             foundStar = 1; break;
@@ -152,6 +151,17 @@ void SearchStar(Star starList[], string search, int typesLim[], int idType){
     if(!foundStar) cout << "STAR \"" << search << "\" WAS NOT FOUND! :(\n";
 }
 
+// GET LINE OF DATA FROM THE INFILES, IGNORING THE TEXT PRECEDING AN 'X' NUMBER OF SPACES
+string GetCurrData(ifstream& inFile, int spaces){
+    string returnStr;
+    getline(inFile, returnStr);
+    for(int i = 0; i < spaces; i++)
+        returnStr = returnStr.substr(returnStr.find(' ') + 1);
+    return returnStr;
+}
+
+// CONVERT A STR OF DATA SUCH AS "(12.43, 82.01)" OR "Lyncis 40" TO ITS DATA COMPONENTS 
+// FOR FLAMSTEED OR COORD STAR TYPES. SHOULD BE CALLED TWICE IN A ROW FOR THE FULL CONVERSION
 variant<float, string> IDStrToData(string toConvert, int idType){
     static bool status = 0;
     if(status == 0){
@@ -163,6 +173,7 @@ variant<float, string> IDStrToData(string toConvert, int idType){
         { status = 0; return stof(toConvert.substr(toConvert.find(' ') + 1)); }
 }
 
+// GETS ID DATA FOR FLAMSTEED OR COORD STAR TYPES STORED IN THE starList, AND CONVERTS IT TO STRING
 string IDDataToStr(Star starList[], int index, int idType){
     string returnStr;
     if(idType == FLAMSTEED){

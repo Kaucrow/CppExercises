@@ -1,4 +1,4 @@
-*** Number of named stars: 2 ***
+*** Number of named stars: 3 ***
 
 -------------------------------
 Identifier: Aldebaran
@@ -8,4 +8,8 @@ Color: Red
 Identifier: Rigel
 Brightness: 0.12
 Color: Blue
+------------------------------
+Identifier: Alpha Centauri A
+Brightness: -0.27
+Color: Yellow
 ------------------------------
