@@ -8,26 +8,19 @@ class Solution{
             if(m == 0){ nums1 = nums2; return; }
 
             for(int nums2IT = 0; nums2IT < n; nums2IT++){
-
-                for(auto i : nums1) cout << i << ' '; 
-                cout << '\n';
+                // insert the nums2 element at the first position of nums1 if it's lower than
+                // all of the elements of nums1
+                if(nums2.at(nums2IT) < nums1.at(0)){
+                    nums1.insert(nums1.begin(), nums2.at(nums2IT));
+                    nums1.pop_back(); continue;
+                }
 
                 for(int nums1IT = (m + nums2IT - 1); nums1IT >= 0; nums1IT--){
                     if(nums2.at(nums2IT) >= nums1.at(nums1IT)){
                         nums1.insert(nums1.begin() + (nums1IT + 1), nums2.at(nums2IT)); 
                         nums1.pop_back(); break; 
                     }
-                    // insert the nums2 element at the first position of nums1 if it's lower than
-                    // all of the elements of nums1
-                    if(nums1IT == 0){
-                        nums1.insert(nums1.begin(), nums2.at(nums2IT));
-                        nums1.pop_back(); break;
-                    }
                 }
-
-                for(auto i : nums1) cout << i << ' '; 
-                cout << '\n';
-
             }
         }
 };
